@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 
  
@@ -14,7 +15,7 @@ void show(void *u, int width, int height)
 {
 	int (*world)[width] = u;
 	for_y {
-		for_x world[y][x] ? mvaddch(  (( (LINES - height) / 2) +1)+y,((COLS - width) / 2)+x,'#') : mvaddch(y,x,' ') ;
+		for_x world[y][x] ? mvaddch(y+2,x+1,'#') : mvaddch(y+2,x+1,' ') ;
 		
 		//printf(world[y][x] ? "\033[07m  \033[m" : "  ");
 		//printf("\033[E");
@@ -63,7 +64,7 @@ void run(int width, int height)
 		// show(world, width, height);
 	
 	// }
-	
+	srand(time(NULL));
 	for_xy world[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
 	
 	
@@ -130,20 +131,25 @@ int main(int argc, char *argv[])
 					 * everty thing to me 		*/
 	keypad(stdscr, TRUE);		/* I need that nifty F1 	*/
 
-	height = LINES -1;
+	height = LINES -1 ;
 	width = COLS;
 	starty = ((LINES - height) / 2) +1;	/* Calculating for a center placement */
-	startx = (COLS - width) / 2;	/* of the window		*/
+	startx = ((COLS - width) / 2) ;	/* of the window		*/
 	printw("Press q to exit");
     
 	refresh();
 	my_win = create_newwin(height, width, starty, startx);
 	
+	do
+    { /* Keyboard loop */
+        ch = getch();
+    }
+    while(ch!='k')
 	// int width = 30, height = 30;
 	// if (c > 1) width = atoi(v[1]);
 	// if (c > 2) height = atoi(v[2]);
 
-	run(width, height);
+	run(width-2, height-3);
 	
 	
 	
