@@ -1,2 +1,3 @@
 #!/bin/bash
-./life $(($(tput cols)-10)) $(($(tput lines)-10))
+clear
+./life $(($(tput cols )-20)) $(($(tput lines)-20))

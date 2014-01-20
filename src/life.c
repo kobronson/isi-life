@@ -41,7 +41,29 @@ void evolution(void *u, int width, int height)
 void run(int width, int height)
 {
 	unsigned world[height][width];
-	FOR_XY world[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
+	char s[10];
+	int x0,y0;
+	
+	FOR_XY  world[y][x] = 0;
+	
+	while(s[0] != 's' ){
+		printf("Chose cells to populate:\n");
+		printf("X:");
+		scanf("%d",&x0);
+		printf("Y:");
+		scanf("%d",&y0);
+		printf("Start life or toggle next cell? (s/n) ");
+		scanf("%s",s);
+		world[y0][x0] = 1;
+	
+	
+		show(world, width, height);
+	
+	}
+	
+	//FOR_XY world[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
+	
+	
 	while (1) {
 		show(world, width, height);
 		evolution(world, width, height);
