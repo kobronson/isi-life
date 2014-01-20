@@ -1,8 +1,7 @@
 CFLAGS = -g -O2 -std=gnu99 	
-
 OBJS = life.o
 
-LIBS =
+LIBS = -lncurses
 
 TARGET = life
 
