@@ -11,22 +11,28 @@
 #define for_y for (int y = 0; y < height; y++)
 #define for_xy for_x for_y
 
-void show(void *u, int width, int height)
+
+WINDOW *my_win=NULL;
+unsigned win_x =0;
+unsigned win_y =0;  
+unsigned generation =0;
+
+bool kbd(int ch,unsigned**,int,int);
+WINDOW *create_newwin(int height, int width, int starty, int startx);
+void destroy_win(WINDOW *local_win);
+
+void show(unsigned **world, int width, int height)
 {
-	int (*world)[width] = u;
 	for_y {
-		for_x world[y][x] ? mvaddch(y+2,x+1,'#') : mvaddch(y+2,x+1,' ') ;
+		for_x world[y][x] ? mvaddch(y+2,x+2,ACS_CKBOARD) : mvaddch(y+2,x+2,' ') ;
 		
-		//printf(world[y][x] ? "\033[07m  \033[m" : "  ");
-		//printf("\033[E");
 	}
 	refresh();
-	//fflush(stdout);
+	
 }
  
-void evolution(void *u, int width, int height)
+void evolution(unsigned **world, int width, int height)
 {
-	unsigned (*world)[width] = u;
 	unsigned new[height][width];
  
 	for_y for_x {
@@ -42,47 +48,20 @@ void evolution(void *u, int width, int height)
 	for_y for_x world[y][x] = new[y][x];
 }
  
-void run(int width, int height)
-{
-	unsigned world[height][width];
-	char s[10];
-	int x0,y0;
-	
-	for_xy  world[y][x] = 0;
-	
-	// while(s[0] != 's' ){
-		// printf("Chose cells to populate:\n");
-		// printf("X:");
-		// scanf("%d",&x0);
-		// printf("Y:");
-		// scanf("%d",&y0);
-		// printf("Start life or toggle next cell? (s/n) ");
-		// scanf("%s",s);
-		// world[y0][x0] = 1;
-	
-	
-		// show(world, width, height);
-	
-	// }
-	srand(time(NULL));
-	for_xy world[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
-	
-	
-	while (1) {
-		show(world, width, height);
-		evolution(world, width, height);
-		usleep(200000);
-	}
-}
+
  
+void run_step(unsigned **world,int width, int height)
+{
+	
+	show(world, width, height);
+	evolution(world, width, height);
+}
 
 
 
 
 
 
-WINDOW *create_newwin(int height, int width, int starty, int startx);
-void destroy_win(WINDOW *local_win);
 
 
 
@@ -90,66 +69,75 @@ WINDOW *create_newwin(int height, int width, int starty, int startx)
 {	WINDOW *local_win;
 
 	local_win = newwin(height, width, starty, startx);
-	box(local_win, 0 , 0);		/* 0, 0 gives default characters 
-					 * for the vertical and horizontal
-					 * lines			*/
-	wrefresh(local_win);		/* Show that box 		*/
+	box(local_win, 0 , 0);	
+	wrefresh(local_win);		
 
 	return local_win;
 }
 
 void destroy_win(WINDOW *local_win)
 {	
-	/* box(local_win, ' ', ' '); : This won't produce the desired
-	 * result of erasing the window. It will leave it's four corners 
-	 * and so an ugly remnant of window. 
-	 */
+
 	wborder(local_win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
-	/* The parameters taken are 
-	 * 1. win: the window on which to operate
-	 * 2. ls: character to be used for the left side of the window 
-	 * 3. rs: character to be used for the right side of the window 
-	 * 4. ts: character to be used for the top side of the window 
-	 * 5. bs: character to be used for the bottom side of the window 
-	 * 6. tl: character to be used for the top left corner of the window 
-	 * 7. tr: character to be used for the top right corner of the window 
-	 * 8. bl: character to be used for the bottom left corner of the window 
-	 * 9. br: character to be used for the bottom right corner of the window
-	 */
+
 	wrefresh(local_win);
 	delwin(local_win);
 	
 }
 
 int main(int argc, char *argv[])
-{	WINDOW *my_win;
+{	
 	int startx, starty, width, height;
-	int ch;
+	int win_width, win_height;
+	int ch,l;
+	unsigned **world; 
 
-	initscr();			/* Start curses mode 		*/
-	cbreak();			/* Line buffering disabled, Pass on
-					 * everty thing to me 		*/
-	keypad(stdscr, TRUE);		/* I need that nifty F1 	*/
-
-	height = LINES -1 ;
-	width = COLS;
-	starty = ((LINES - height) / 2) +1;	/* Calculating for a center placement */
-	startx = ((COLS - width) / 2) ;	/* of the window		*/
-	printw("Press q to exit");
-    
-	refresh();
-	my_win = create_newwin(height, width, starty, startx);
+	initscr();			
+	cbreak();
 	
+	win_height = LINES -1 ;
+	win_width = COLS;
+	
+	
+	if(argc==3)
+	{
+	
+		win_height=atoi(argv[1]) -1;
+		win_width=atoi(argv[2]);
+	}
+	
+	keypad(stdscr, TRUE);		
+	starty = ((LINES - win_height) / 2) +1;	
+	startx = ((COLS - win_width) / 2) ;	
+	
+	//printw("[q] to exit, [r] random mode, [n] next step, [space] togle cell, [arrows] move       ");
+    
+	
+	
+	
+	
+	refresh();
+	my_win = create_newwin(win_height, win_width, starty, startx);
+	
+	width = win_width-4;
+	height = win_height-2;
+	
+	world = (unsigned**)malloc(height * sizeof(unsigned*));
+	for(l = 0; l < width; l++)
+		world[l] = (unsigned*)malloc(width * sizeof(unsigned));
+		
+		
+	
+	for_xy world[y][x] = 0;
+
 	do
     { /* Keyboard loop */
+		
+		
         ch = getch();
     }
-    while(ch!='k')
-	// int width = 30, height = 30;
-	// if (c > 1) width = atoi(v[1]);
-	// if (c > 2) height = atoi(v[2]);
+    while(kbd(ch,world,width,height));
 
-	run(width-2, height-3);
 	
 	
 	
@@ -158,44 +146,56 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-bool kbd(int ch)
+bool kbd(int ch, unsigned **world,int width, int height )
 {
     int x,y; /* Holds the coordinates */
-  //  getyx(life, y, x); /* Get the coordinates from curses life window */
+    getyx(my_win, y, x); /* Get the coordinates from curses life window */
+  
     switch(ch)
-    { /* hjkl + q + space + enter */
+    { 
         case 'q':
             return false;
             break;
-        case 'l': /* Go right */
-          //  x=(x+1)%CMAX;
+        case 'n': 
+		
+		run_step(world,width,height);
+		generation++;
+        
             break;
-        case 'h': /* Go left */
-         //   x=(x-1)%CMAX;
+        case 'r': 
+			srand(time(NULL));
+			for_xy world[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
+			show(world,width,height);
+			
+        case ' ':
+            world[y-1][x-2]=1;
+			show(world,width,height);
             break;
-        case 'j': /* Go down */
-          //  y=(y+1)%LMAX;
-            break;
-        case 'k': /* Go up */
-          //  y=(y-1)%LMAX;
-            break;
-        case ' ': /* Activate a cell */
-           
-            break;
-        case 10: /* Enter. Start the tick */
-          //  tick();
-            break;
-        case KEY_UP: /* Increase tick size */
+        case KEY_UP: 
+			 y=(y-1)%(height+2);
 
           
             break;
-        case KEY_DOWN: /* Reduce tick size */
+        case KEY_DOWN: 
           
-           
+            y=(y+1)%(height+2);
             break;
-    }
-    //wmove(life, y, x); 
-    //wrefresh(life);
+		 case KEY_LEFT: 
+          
+            x=(x-1)%(width+2);
+            break;
+		case KEY_RIGHT: 
+          
+            x=(x+1)%(width+2);
+            break;
+    }			
+	mvprintw(0,0,"[q] to exit, [r] random mode, [n] next step, [space] togle cell, [arrows] move.    Generation:%d       ",generation);
+	refresh();	
+	wmove(my_win,y, x); 
+	
+		
+			wrefresh(my_win);
+   
 
     return true;
 }
