@@ -150,6 +150,43 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+void glider(unsigned **world,int y, int x)
+{
+	world[y][x] = 1;
+	world[y+1][x+1]=1;
+	world[y+1][x+2]=1;
+	world[y-1][x+2]=1;
+	world[y][x+2]=1;
+
+}
+
+void lwss(unsigned **world,int y, int x)
+{
+	world[y][x] = 1;
+	world[y-1][x+1] = 1;
+	world[y-1][x+4] = 1;
+	world[y+1][x] = 1;
+	world[y+2][x] = 1;
+	
+	world[y+2][x+1] = 1;
+	world[y+2][x+2] = 1;
+	world[y+2][x+3] = 1;
+	
+	world[y+1][x+4] = 1;
+}
+
+void air_carrier(unsigned **world,int y, int x)
+{
+	world[y][x] = 1;
+	world[y-1][x] = 1;
+	world[y][x+1] = 1;
+	
+
+	world[y-1][x+3] = 1;
+	world[y-2][x+3] = 1;
+	world[y-2][x+2] = 1;
+}
+
 bool kbd(int ch, unsigned **world,int width, int height )
 {
     int c_x,c_y; /* Holds the coordinates */
@@ -221,6 +258,27 @@ bool kbd(int ch, unsigned **world,int width, int height )
 			}
 
             break;
+		case 'a': 
+          
+			glider(world,c_y-1,c_x-1);
+			show(world,width,height);
+            break;
+		case 's': 
+          
+			lwss(world,c_y-1,c_x-1);
+			show(world,width,height);
+            break;
+		case 'w': 
+          
+			lwss(world,c_y-1,c_x-1);
+			show(world,width,height);
+            break;
+		case 'z': 
+          
+			air_carrier(world,c_y-1,c_x-1);
+			show(world,width,height);
+            break;
+		
     }			
 	mvprintw(0,0,"[q] to exit, [r] random mode, [n] next step, [space] togle cell, [arrows] move.    Generation:%d       ",generation);
 	refresh();	
