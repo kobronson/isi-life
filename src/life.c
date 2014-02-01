@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 #include <time.h>
 
 
@@ -19,14 +20,15 @@ unsigned generation =0;
 
 bool kbd(int ch,unsigned**,int,int);
 WINDOW *create_newwin(int height, int width, int starty, int startx);
+
+
 void destroy_win(WINDOW *local_win);
 
 void show(unsigned **world, int width, int height)
 {
-	for_y {
-		for_x world[y][x] ? mvaddch(y+2,x+2,ACS_CKBOARD) : mvaddch(y+2,x+2,' ') ;
+	for_xy world[y][x] ? mvwaddch(my_win,y+1,x+1,ACS_CKBOARD) : mvwaddch(my_win,y+1,x+1,' ') ;
 		
-	}
+	
 	refresh();
 	
 }
@@ -45,7 +47,7 @@ void evolution(unsigned **world, int width, int height)
 		if (world[y][x]) n--;
 		new[y][x] = (n == 3 || (n == 2 && world[y][x]));
 	}
-	for_y for_x world[y][x] = new[y][x];
+	for_xy world[y][x] = new[y][x];
 }
  
 
@@ -91,45 +93,47 @@ int main(int argc, char *argv[])
 	int win_width, win_height;
 	int ch,l;
 	unsigned **world; 
-
+	struct winsize w;
 	initscr();			
 	cbreak();
 	
-	win_height = LINES -1 ;
-	win_width = COLS;
+	
 	
 	
 	if(argc==3)
 	{
 	
-		win_height=atoi(argv[1]) -1;
+		win_height=atoi(argv[1]) ;
 		win_width=atoi(argv[2]);
 	}
+
 	
-	keypad(stdscr, TRUE);		
-	starty = ((LINES - win_height) / 2) +1;	
-	startx = ((COLS - win_width) / 2) ;	
+		
+	//starty = ((LINES - win_height) / 2) +1;	
+	//startx = ((COLS - win_width) / 2) ;	
 	
 	//printw("[q] to exit, [r] random mode, [n] next step, [space] togle cell, [arrows] move       ");
     
-	
+	mvprintw(0,0,"[q] to exit, [r] random mode, [n] next step, [space] togle cell, [arrows] move.    Generation:%d       ",generation);
 	
 	
 	
 	refresh();
-	my_win = create_newwin(win_height, win_width, starty, startx);
+	my_win = create_newwin(win_height, win_width, 1, 0);
+	keypad(stdscr, TRUE);	
 	
-	width = win_width-4;
+	width = win_width-2;
 	height = win_height-2;
+	
 	
 	world = (unsigned**)malloc(height * sizeof(unsigned*));
 	for(l = 0; l < width; l++)
 		world[l] = (unsigned*)malloc(width * sizeof(unsigned));
 		
 		
-	
-	for_xy world[y][x] = 0;
 
+	for_xy world[y][x] = 0;
+	//wmove(my_win,0, 0); 
 	do
     { /* Keyboard loop */
 		
@@ -148,8 +152,8 @@ int main(int argc, char *argv[])
 
 bool kbd(int ch, unsigned **world,int width, int height )
 {
-    int x,y; /* Holds the coordinates */
-    getyx(my_win, y, x); /* Get the coordinates from curses life window */
+    int c_x,c_y; /* Holds the coordinates */
+    getyx(my_win, c_y, c_x); /* Get the coordinates from curses life window */
   
     switch(ch)
     { 
@@ -166,35 +170,63 @@ bool kbd(int ch, unsigned **world,int width, int height )
 			srand(time(NULL));
 			for_xy world[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
 			show(world,width,height);
+			break;
 			
         case ' ':
-            world[y-1][x-2]=1;
+
+			
+            world[c_y-1][c_x-1]=1;
 			show(world,width,height);
+	
+
+
             break;
+			
+			
         case KEY_UP: 
-			 y=(y-1)%(height+2);
+			c_y=(c_y-1)%(height+2);
+			 if(c_y==0)
+			{
+				c_y=height;
+			}
+			 
 
           
             break;
         case KEY_DOWN: 
-          
-            y=(y+1)%(height+2);
+			
+            c_y=(c_y+1)%(height+1);
+			
+			if(c_y==0)
+			{
+				c_y++;
+			}
+
             break;
 		 case KEY_LEFT: 
-          
-            x=(x-1)%(width+2);
+			
+            c_x=(c_x-1)%(width+2);
+			if(c_x==0)
+			{
+				c_x=width;
+			}
+
             break;
 		case KEY_RIGHT: 
           
-            x=(x+1)%(width+2);
+            c_x=(c_x+1)%(width+1);
+			if(c_x==0)
+			{
+				c_x++;
+			}
+
             break;
     }			
 	mvprintw(0,0,"[q] to exit, [r] random mode, [n] next step, [space] togle cell, [arrows] move.    Generation:%d       ",generation);
 	refresh();	
-	wmove(my_win,y, x); 
 	
-		
-			wrefresh(my_win);
+	wmove(my_win,c_y, c_x); 
+	wrefresh(my_win);
    
 
     return true;
