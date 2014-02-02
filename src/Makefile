@@ -1,9 +1,9 @@
 CFLAGS = -g -O2 -std=gnu99 	
-OBJS = life.o
+OBJS = life.o patterns.o
 
 LIBS = -lncurses
 
-TARGET = life
+TARGET = life 
 
 $(TARGET):	$(OBJS)
 	$(CC) -o $(TARGET) $(OBJS) $(LIBS) 

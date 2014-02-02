@@ -5,7 +5,7 @@
 #include <sys/ioctl.h>
 #include <time.h>
 
-
+#include"patterns.h"
  
  
 #define for_x for (int x = 0; x < width; x++)
@@ -109,12 +109,9 @@ int main(int argc, char *argv[])
 
 	
 		
-	//starty = ((LINES - win_height) / 2) +1;	
-	//startx = ((COLS - win_width) / 2) ;	
 	
-	//printw("[q] to exit, [r] random mode, [n] next step, [space] togle cell, [arrows] move       ");
     
-	mvprintw(0,0,"[q] to exit, [r] random mode, [n] next step, [space] togle cell, [arrows] move.    Generation:%d       ",generation);
+	mvprintw(0,0,"[q] to exit, [r] random mode, [n] next step, [space] togle cell, [arrows] move, [w,e,a,s,z,x] structures.    Generation:%d       ",generation);
 	
 	
 	
@@ -133,10 +130,9 @@ int main(int argc, char *argv[])
 		
 
 	for_xy world[y][x] = 0;
-	//wmove(my_win,0, 0); 
+	
 	do
-    { /* Keyboard loop */
-		
+    { 
 		
         ch = getch();
     }
@@ -146,51 +142,15 @@ int main(int argc, char *argv[])
 	
 	
 		
-	endwin();			/* End curses mode		  */
+	endwin();			
 	return 0;
 }
 
-void glider(unsigned **world,int y, int x)
-{
-	world[y][x] = 1;
-	world[y+1][x+1]=1;
-	world[y+1][x+2]=1;
-	world[y-1][x+2]=1;
-	world[y][x+2]=1;
-
-}
-
-void lwss(unsigned **world,int y, int x)
-{
-	world[y][x] = 1;
-	world[y-1][x+1] = 1;
-	world[y-1][x+4] = 1;
-	world[y+1][x] = 1;
-	world[y+2][x] = 1;
-	
-	world[y+2][x+1] = 1;
-	world[y+2][x+2] = 1;
-	world[y+2][x+3] = 1;
-	
-	world[y+1][x+4] = 1;
-}
-
-void air_carrier(unsigned **world,int y, int x)
-{
-	world[y][x] = 1;
-	world[y-1][x] = 1;
-	world[y][x+1] = 1;
-	
-
-	world[y-1][x+3] = 1;
-	world[y-2][x+3] = 1;
-	world[y-2][x+2] = 1;
-}
 
 bool kbd(int ch, unsigned **world,int width, int height )
 {
-    int c_x,c_y; /* Holds the coordinates */
-    getyx(my_win, c_y, c_x); /* Get the coordinates from curses life window */
+    int c_x,c_y;
+    getyx(my_win, c_y, c_x); 
   
     switch(ch)
     { 
@@ -212,7 +172,17 @@ bool kbd(int ch, unsigned **world,int width, int height )
         case ' ':
 
 			
-            world[c_y-1][c_x-1]=1;
+            if(world[c_y-1][c_x-1]==1)
+			{
+			
+				world[c_y-1][c_x-1]=0;
+			}
+			else
+			{
+			
+				world[c_y-1][c_x-1]=1;
+			
+			}
 			show(world,width,height);
 	
 
@@ -258,29 +228,46 @@ bool kbd(int ch, unsigned **world,int width, int height )
 			}
 
             break;
+		/*spaceships*/
 		case 'a': 
           
 			glider(world,c_y-1,c_x-1);
 			show(world,width,height);
             break;
+
 		case 's': 
           
 			lwss(world,c_y-1,c_x-1);
 			show(world,width,height);
             break;
-		case 'w': 
+		
+		/*oscilators*/	
+		case 'z': 
           
-			lwss(world,c_y-1,c_x-1);
+			toad(world,c_y-1,c_x-1);
 			show(world,width,height);
             break;
-		case 'z': 
+		case 'x': 
+          
+			blinker(world,c_y-1,c_x-1);
+			show(world,width,height);
+            break;
+			
+		
+		/*still lifes*/
+		case 'w': 
+          
+			block(world,c_y-1,c_x-1);
+			show(world,width,height);
+            break;
+		case 'e': 
           
 			air_carrier(world,c_y-1,c_x-1);
 			show(world,width,height);
             break;
 		
     }			
-	mvprintw(0,0,"[q] to exit, [r] random mode, [n] next step, [space] togle cell, [arrows] move.    Generation:%d       ",generation);
+	mvprintw(0,0,"[q] to exit, [r] random mode, [n] next step, [space] togle cell, [arrows] move, [w,e,a,s,z,x] structures.    Generation:%d       ",generation);
 	refresh();	
 	
 	wmove(my_win,c_y, c_x); 
